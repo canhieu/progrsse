@@ -1,0 +1,14 @@
+{
+  "name": "browserflow-lab",
+  "version": "1.0.0",
+  "description": "Lab mô phỏng tương tác Chu trình xử lý của Trình duyệt từ URL đến Render",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0"
+  }
+}

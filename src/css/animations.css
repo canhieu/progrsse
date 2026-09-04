@@ -1,0 +1,65 @@
+/* ==========================================================================
+   BrowserFlow Lab - Subtle Clean Animations
+   ========================================================================== */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-icon {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+/* Subtle node transition */
+.node-card {
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Flying packet path */
+.flying-packet {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #ffffff;
+  pointer-events: none;
+  z-index: 100;
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.flying-packet.packet-tls {
+  background: var(--accent-purple);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .main-workspace-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .left-panel {
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .flow-nodes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

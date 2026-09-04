@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chu trình Trình duyệt: Từ URL đến Render - BrowserFlow Lab</title>
+
+  <!-- Google Font: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/src/css/base.css" />
+  <link rel="stylesheet" href="/src/css/components.css" />
+  <link rel="stylesheet" href="/src/css/animations.css" />
+</head>
+<body>
+  <div class="lab-page-wrapper">
+    <!-- Top Header -->
+    <header class="lab-header">
+      <div class="lab-title-group">
+        <h1>Chu trình Xử lý của Trình duyệt (Từ URL đến Render)</h1>
+        <p>Mô phỏng trực quan các bước diễn ra ngầm: Phân tích URL, DNS, TCP/TLS, HTTP Request/Response và Render trang</p>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <label for="url-preset-select" style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Ví dụ URL:</label>
+        <select id="url-preset-select" class="form-control" style="width: 280px;">
+          <option value="example-sport" selected>https://example.com/posts/sport</option>
+          <option value="tech-news">https://techvn-news.io/article/browser-engines</option>
+          <option value="ecommerce">https://shopvn.com/products/keyboard</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- Controls & Step Navigation Bar -->
+    <section class="lab-controls-bar">
+      <div class="playback-btn-group">
+        <button class="btn btn-secondary btn-sm" id="btn-prev-step" title="Lùi về bước trước">⏮ Bước trước</button>
+        <button class="btn btn-primary" id="btn-toggle-play" style="min-width: 140px;">
+          <span id="play-btn-text">▶ Chạy tự động</span>
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btn-next-step" title="Đi tiếp bước tiếp theo">⏭ Bước kế tiếp</button>
+        <button class="btn btn-secondary btn-sm" id="btn-reset-sim" title="Đặt lại từ đầu">↺ Đặt lại</button>
+
+        <div style="display: flex; align-items: center; gap: 4px; margin-left: 8px;">
+          <span style="font-size: 11px; color: var(--text-muted);">Tốc độ:</span>
+          <select id="select-speed" class="form-control" style="padding: 2px 6px; font-size: 11px;">
+            <option value="0.5">0.5x</option>
+            <option value="1.0" selected>1.0x</option>
+            <option value="2.0">2.0x</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Stepper Indicator (Clickable to jump anywhere) -->
+      <div class="step-indicator-bar" id="stepper-buttons-bar">
+        <button class="step-btn active" data-step="0">0. Nhập URL</button>
+        <button class="step-btn" data-step="1">1. DNS Cache</button>
+        <button class="step-btn" data-step="1.1">1.1 DNS Server</button>
+        <button class="step-btn" data-step="2">2. TCP & TLS</button>
+        <button class="step-btn" data-step="3">3. HTTP Request</button>
+        <button class="step-btn" data-step="4">4. HTTP Response</button>
+        <button class="step-btn" data-step="5">5. Browser Render</button>
+      </div>
+    </section>
+
+    <!-- Main Interactive Diagram Canvas (Directly matching Viblo diagram) -->
+    <main class="diagram-canvas-card" id="diagram-main-canvas">
+      <!-- SVG Overlay for Arrows & Markers -->
+      <svg class="diagram-svg-overlay" id="diagram-svg-arrows">
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#1e293b" />
+          </marker>
+          <marker id="arrowhead-active" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#2563eb" />
+          </marker>
+        </defs>
+
+        <!-- Arrow from Tony to Browser -->
+        <path id="arrow-tony" class="diagram-arrow-path" d="M 227 82 L 227 143" marker-end="url(#arrowhead)" />
+
+        <!-- Arrow 1: Browser to DNS Cache (Down-left) -->
+        <path id="arrow-step1" class="diagram-arrow-path" d="M 170 400 L 87 531" marker-end="url(#arrowhead)" />
+
+        <!-- Arrow 1.1: Browser to DNS Server (Down-right) -->
+        <path id="arrow-step1-1" class="diagram-arrow-path" d="M 357 400 L 357 531" marker-end="url(#arrowhead)" />
+
+        <!-- Arrow 2: TCP/TLS Handshake to Web Server (Pointing Right) -->
+        <path id="arrow-step2" class="diagram-arrow-path" d="M 465 270 L 995 270" marker-end="url(#arrowhead)" />
+
+        <!-- Arrow 3: HTTP Request to Web Server (Pointing Right) -->
+        <path id="arrow-step3" class="diagram-arrow-path" d="M 465 320 L 995 320" marker-end="url(#arrowhead)" />
+
+        <!-- Arrow 4: HTTP Response from Web Server (Pointing Left) -->
+        <path id="arrow-step4" class="diagram-arrow-path" d="M 995 370 L 468 370" marker-end="url(#arrowhead)" />
+      </svg>
+
+      <!-- Tony Avatar (Top Left) -->
+      <div class="tony-avatar-section">
+        <svg class="user-icon-svg" viewBox="0 0 24 24">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <div class="tony-speech-text">Tony enters a URL in the browser</div>
+      </div>
+
+      <!-- URL Components Breakdown Box (Top Right) -->
+      <div class="url-components-card" id="url-components-card">
+        <div class="url-comp-label">URL components</div>
+        <div class="url-box-border">
+          <div class="url-string-display" id="url-breakdown-text">
+            <span class="url-scheme" id="comp-scheme">https://</span><span class="url-domain" id="comp-domain">example.com/</span><span class="url-path" id="comp-path">posts/</span><span class="url-resource" id="comp-resource">sport</span>
+          </div>
+        </div>
+        <div class="url-pointers-row">
+          <span class="url-scheme">↑ Scheme</span>
+          <span class="url-domain">↑ Domain</span>
+          <span class="url-path">↑ Path</span>
+          <span class="url-resource">↑ Resource</span>
+        </div>
+      </div>
+
+      <!-- Center Browser Window -->
+      <div class="diagram-browser-window" id="browser-window-box">
+        <div class="browser-tab-row">
+          <div class="browser-single-tab">
+            <span style="opacity: 0.7;">📄</span>
+            <span id="tab-title-text">Page 1</span>
+          </div>
+          <div class="browser-dots">
+            <div class="b-dot"></div>
+            <div class="b-dot"></div>
+            <div class="b-dot"></div>
+          </div>
+        </div>
+
+        <div class="browser-address-row">
+          <span class="browser-fake-btn">⬅</span>
+          <span class="browser-fake-btn">➡</span>
+          <span class="browser-fake-btn">🔄</span>
+          <div class="browser-address-box">
+            <span style="opacity: 0.6;">📄</span>
+            <span id="address-bar-content" style="font-family: var(--font-sans); font-size: 13px;">
+              <span class="url-scheme">https://</span><span class="url-domain">example.com/</span><span class="url-path">posts/</span><span class="url-resource">sport</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="browser-viewport-inner" id="browser-viewport-content">
+          <!-- Step 5: Placeholder or Rendered Content -->
+          <div class="viewport-step5-placeholder" id="viewport-empty-msg">
+            <div id="viewport-state-badge" style="margin-bottom: 6px; font-weight: 500; font-size: 15px; color: #1e293b;">
+              5. Browser renders HTTP content
+            </div>
+            <div id="viewport-status-text" style="font-size: 12px; color: var(--text-muted); max-width: 320px;">
+              (Đang chờ phản hồi từ máy chủ web để bắt đầu biên dịch HTML...)
+            </div>
+          </div>
+
+          <!-- The actual rendered web page (Visible at Step 5) -->
+          <div class="viewport-rendered-content" id="viewport-rendered-page">
+            <div class="rendered-sport-article">
+              <span class="rendered-badge">Thể thao 24h</span>
+              <h2 class="rendered-h2" id="rendered-page-title">Trực tiếp Chung kết Bóng đá: Phân tích Chiến thuật</h2>
+              <div class="rendered-banner" id="rendered-banner-box">
+                [ Ảnh Tin bài Thể thao - LCP ]
+              </div>
+              <p class="rendered-p">
+                Nội dung HTML đã được bóc tách thành các node DOM, CSS đã được tính toán thành CSSOM, và Render Tree đã hoàn tất vẽ các điểm ảnh (Pixels) lên khung hình.
+              </p>
+              <button class="rendered-btn" id="btn-test-interactive">Tương tác trang web</button>
+              <span id="interactive-feedback" style="font-size: 10px; color: #16a34a; font-weight: 600;"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Text Labels on Arrows (Clickable to jump directly to steps) -->
+      <div class="arrow-text-label" id="label-step1" style="top: 440px; left: 30px;" data-step="1">
+        1.Browser looks up<br>IP in cache
+      </div>
+
+      <div class="arrow-text-label" id="label-step1-1" style="top: 445px; left: 275px;" data-step="1.1">
+        1.1 Browser looks up IP<br>using recursive lookup
+      </div>
+
+      <div class="arrow-text-label" id="label-step2" style="top: 246px; left: 520px;" data-step="2">
+        2. Browser establishes TCP connection, SSL/TLS handshake with the server
+      </div>
+
+      <div class="arrow-text-label" id="label-step3" style="top: 296px; left: 545px;" data-step="3">
+        3. Browser sends HTTPs request to the server
+      </div>
+
+      <div class="arrow-text-label" id="label-step4" style="top: 346px; left: 600px;" data-step="4">
+        4. Server return HTTP response
+      </div>
+
+      <!-- Bottom Boxes: DNS Cache & DNS Server -->
+      <div class="diagram-dns-cache-box" id="box-dns-cache">
+        DNS cache
+      </div>
+
+      <div class="diagram-dns-server-box" id="box-dns-server">
+        DNS Server
+      </div>
+
+      <!-- Right Box: Web Server -->
+      <div class="diagram-web-server-box" id="box-web-server">
+        <div class="server-title">Web server</div>
+      </div>
+      <div class="server-ip-label" id="server-ip-display">72.10.20.8</div>
+    </main>
+
+    <!-- Lower Section: Step Explanation & Auxiliary Tabs -->
+    <section class="details-tabs-card">
+      <nav class="details-tab-nav">
+        <button class="details-nav-btn active" data-tab="explainer">Giải thích chi tiết Bước hiện tại</button>
+        <button class="details-nav-btn" data-tab="waterfall">DevTools Network Waterfall</button>
+        <button class="details-nav-btn" data-tab="dom-cssom">Cây DOM & CSSOM</button>
+        <button class="details-nav-btn" data-tab="quiz">Trắc nghiệm kiến thức (8 câu)</button>
+      </nav>
+
+      <!-- Tab 1: Current Step Detailed Explainer -->
+      <div class="details-tab-pane active" id="pane-explainer">
+        <div class="step-explainer-grid">
+          <div>
+            <h3 class="explainer-title" id="step-detail-title">Bước 0: Người dùng nhập địa chỉ URL</h3>
+            <p class="explainer-body" id="step-detail-text">
+              Tony gõ địa chỉ <code>https://example.com/posts/sport</code> vào thanh địa chỉ của trình duyệt. Trình duyệt bóc tách chuỗi URL thành các thành phần: Giao thức (Scheme: https), Tên miền (Domain: example.com), Đường dẫn thư mục (Path: /posts/), và Tài nguyên đích (Resource: sport).
+            </p>
+            <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);" id="step-detail-meta">
+              Tiến trình liên quan: <strong>Browser Process (UI Thread)</strong>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
+              DỮ LIỆU GÓI TIN / TRẠNG THÁI HỆ THỐNG:
+            </div>
+            <pre class="explainer-packet-box" id="step-packet-content">
+Input URL: https://example.com/posts/sport
+Scheme: https (Default Port: 443)
+Domain: example.com
+Path: /posts/
+Resource: sport
+HSTS Preload: Kiểm tra danh sách -> Enforce HTTPS</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Network Waterfall -->
+      <div class="details-tab-pane" id="pane-waterfall">
+        <div style="margin-bottom: 10px; font-size: 12px; color: var(--text-muted);">
+          Bảng mô phỏng các tài nguyên tải về từ Web Server (72.10.20.8) qua thời gian:
+        </div>
+        <table class="waterfall-table-clean">
+          <thead>
+            <tr>
+              <th style="width: 25%;">Tên tài nguyên</th>
+              <th style="width: 12%;">Trạng thái</th>
+              <th style="width: 12%;">Loại</th>
+              <th style="width: 12%;">Kích thước</th>
+              <th style="width: 12%;">Thời gian</th>
+              <th style="width: 27%;">Tiến trình Waterfall</th>
+            </tr>
+          </thead>
+          <tbody id="waterfall-rows-container">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab 3: DOM & CSSOM Tree -->
+      <div class="details-tab-pane" id="pane-dom-cssom">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div style="background: #f8fafc; padding: 14px; border-radius: 6px; border: 1px solid var(--border-light);">
+            <h4 style="color: var(--primary); font-size: 13px; margin-bottom: 8px;">1. Cây DOM (Document Object Model)</h4>
+            <div style="font-family: var(--font-mono); font-size: 11px; line-height: 1.8; color: var(--text-secondary);">
+              html<br>
+              ├─ head<br>
+              │  ├─ title ("Thể thao 24h")<br>
+              │  └─ link (rel="stylesheet" href="style.css")<br>
+              └─ body<br>
+                 ├─ div.article-wrapper<br>
+                 │  ├─ h2 ("Trực tiếp Chung kết Bóng đá")<br>
+                 │  ├─ div.banner-img<br>
+                 │  └─ p ("Nội dung bài viết...")<br>
+                 └─ script (src="app.js")
+            </div>
+          </div>
+
+          <div style="background: #f8fafc; padding: 14px; border-radius: 6px; border: 1px solid var(--border-light);">
+            <h4 style="color: var(--accent-purple); font-size: 13px; margin-bottom: 8px;">2. Cây CSSOM (CSS Object Model)</h4>
+            <div style="font-family: var(--font-mono); font-size: 11px; line-height: 1.8; color: var(--text-secondary);">
+              body { font-family: Inter, sans-serif; }<br>
+              .article-wrapper { display: flex; flex-direction: column; }<br>
+              h2 { font-size: 15px; font-weight: 700; color: #0f172a; }<br>
+              .banner-img { height: 80px; background: linear-gradient(...); }<br>
+              .rendered-btn { background: #2563eb; color: #fff; }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Quiz -->
+      <div class="details-tab-pane" id="pane-quiz">
+        <div id="quiz-mount-point">
+          <!-- Quiz rendered by quiz-system.js -->
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Main JavaScript App -->
+  <script type="module" src="/src/js/app.js"></script>
+</body>
+</html>
