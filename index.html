@@ -9,10 +9,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="/src/css/base.css" />
-  <link rel="stylesheet" href="/src/css/components.css" />
-  <link rel="stylesheet" href="/src/css/animations.css" />
 </head>
 <body>
   <div class="lab-page-wrapper">
@@ -168,7 +164,7 @@
                 [ Ảnh Tin bài Thể thao - LCP ]
               </div>
               <p class="rendered-p">
-                Nội dung HTML đã được bóc tách thành các node DOM, CSS đã được tính toán thành CSSOM, và Render Tree đã hoàn tất vẽ các điểm ảnh (Pixels) lên khung hình.
+                Nội dung HTML đã được bóc tách thành các node DOM, CSS đã được tính toán thành CSSOM, và Render Tree đã hoàn tất vẽ các điểm ảnh (Pixels) lên k[...]
               </p>
               <button class="rendered-btn" id="btn-test-interactive">Tương tác trang web</button>
               <span id="interactive-feedback" style="font-size: 10px; color: #16a34a; font-weight: 600;"></span>
@@ -229,7 +225,7 @@
           <div>
             <h3 class="explainer-title" id="step-detail-title">Bước 0: Người dùng nhập địa chỉ URL</h3>
             <p class="explainer-body" id="step-detail-text">
-              Tony gõ địa chỉ <code>https://example.com/posts/sport</code> vào thanh địa chỉ của trình duyệt. Trình duyệt bóc tách chuỗi URL thành các thành phần: Giao thức (Scheme: https), Tên miền (Domain: example.com), Đường dẫn thư mục (Path: /posts/), và Tài nguyên đích (Resource: sport).
+              Tony gõ địa chỉ <code>https://example.com/posts/sport</code> vào thanh địa chỉ của trình duyệt. Trình duyệt bóc tách chuỗi URL thành các thành phần: Gia[...]
             </p>
             <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);" id="step-detail-meta">
               Tiến trình liên quan: <strong>Browser Process (UI Thread)</strong>
@@ -240,8 +236,7 @@
             <div style="font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
               DỮ LIỆU GÓI TIN / TRẠNG THÁI HỆ THỐNG:
             </div>
-            <pre class="explainer-packet-box" id="step-packet-content">
-Input URL: https://example.com/posts/sport
+            <pre class="explainer-packet-box" id="step-packet-content">Input URL: https://example.com/posts/sport
 Scheme: https (Default Port: 443)
 Domain: example.com
 Path: /posts/
@@ -314,7 +309,7 @@ HSTS Preload: Kiểm tra danh sách -> Enforce HTTPS</pre>
     </section>
   </div>
 
-  <!-- Main JavaScript App -->
-  <script type="module" src="/src/js/app.js"></script>
+  <!-- Main JavaScript Entry Point (Vite will handle CSS imports) -->
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>
